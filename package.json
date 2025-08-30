@@ -1,0 +1,28 @@
+{
+  "name": "cloudflare-ai-gateway-realtime-poc",
+  "version": "2.0.0",
+  "description": "POC for using Cloudflare AI Gateway with OpenAI's text and realtime APIs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "cloudflare",
+    "ai-gateway",
+    "openai",
+    "realtime-api",
+    "websocket",
+    "vite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.58.0",
+    "openai-realtime-api": "1.0.8"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

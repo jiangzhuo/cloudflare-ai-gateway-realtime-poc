@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Chat - Cloudflare AI Gateway</title>
+    <link rel="stylesheet" href="/src/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="back-link">← Back to Home</a>
+            <h1>Text Chat</h1>
+            <p>Using OpenAI Chat Completions API via Cloudflare AI Gateway</p>
+        </header>
+
+        <div class="config-panel">
+            <h3>Configuration</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="accountId">Cloudflare Account ID:</label>
+                    <input type="text" id="accountId" placeholder="Your Account ID">
+                </div>
+                <div class="config-item">
+                    <label for="gatewayId">Gateway ID:</label>
+                    <input type="text" id="gatewayId" placeholder="Your Gateway ID">
+                </div>
+                <div class="config-item">
+                    <label for="openaiKey">OpenAI API Key (BYOK):</label>
+                    <input type="password" id="openaiKey" placeholder="sk-...">
+                </div>
+                <div class="config-item">
+                    <label for="cfAuthToken">CF AI Gateway Auth Token (Optional):</label>
+                    <input type="password" id="cfAuthToken" placeholder="Bearer token">
+                </div>
+                <div class="config-item">
+                    <label for="model">Model:</label>
+                    <select id="model">
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>
+                        <input type="checkbox" id="useAuthGateway">
+                        Use Authenticated Gateway
+                    </label>
+                </div>
+            </div>
+            <button id="saveConfig" class="btn btn-secondary">Save Configuration</button>
+            <span id="configStatus" class="status-message"></span>
+        </div>
+
+        <main class="chat-container">
+            <div id="chatMessages" class="chat-messages">
+                <div class="message system">
+                    <p>Welcome! Configure your settings above and start chatting.</p>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="chat-input" 
+                        placeholder="Type your message here..."
+                        rows="3"
+                    ></textarea>
+                    <button id="sendButton" class="btn btn-primary send-btn">Send</button>
+                </div>
+                <div class="chat-controls">
+                    <button id="clearChat" class="btn btn-secondary">Clear Chat</button>
+                    <span id="status" class="status-indicator"></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Load as ES modules -->
+    <script type="module" src="/src/js/chat.js"></script>
+</body>
+</html>

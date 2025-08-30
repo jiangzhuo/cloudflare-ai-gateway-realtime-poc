@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare AI Gateway + OpenAI POC</title>
+    <link rel="stylesheet" href="/src/css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <header>
+                <h1>Cloudflare AI Gateway + OpenAI Integration</h1>
+                <p>Proof of Concept for Text and Voice Chat</p>
+            </header>
+
+            <main>
+                <div class="info-section">
+                    <h2>Welcome to the POC</h2>
+                    <p>This demonstration shows how to use Cloudflare AI Gateway with OpenAI's APIs for both text-based chat and real-time voice conversations.</p>
+                    
+                    <div class="features">
+                        <h3>Features:</h3>
+                        <ul>
+                            <li>✅ Cloudflare AI Gateway integration</li>
+                            <li>✅ BYOK (Bring Your Own Key) support</li>
+                            <li>✅ Authenticated Gateway support</li>
+                            <li>✅ Text-based chat using OpenAI API</li>
+                            <li>✅ Real-time voice chat using WebSocket</li>
+                            <li>✅ Direct OpenAI connection for comparison</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="navigation-cards">
+                    <div class="card">
+                        <h3>📝 Text Chat</h3>
+                        <p>Traditional text-based conversation using OpenAI's Chat Completions API through Cloudflare AI Gateway.</p>
+                        <a href="/src/pages/chat.html" class="btn btn-primary">Open Text Chat</a>
+                    </div>
+
+                    <div class="card">
+                        <h3>🎤 Voice Chat (via Gateway)</h3>
+                        <p>Real-time voice conversation using OpenAI's Realtime API via WebSocket through Cloudflare AI Gateway.</p>
+                        <a href="/src/pages/realtime.html" class="btn btn-primary">Open Voice Chat</a>
+                    </div>
+
+                    <div class="card">
+                        <h3>🎙️ Voice Chat (Direct)</h3>
+                        <p>Direct connection to OpenAI's Realtime API without Cloudflare AI Gateway for testing and comparison.</p>
+                        <a href="/src/pages/realtime-direct.html" class="btn btn-secondary">Open Direct Voice Chat</a>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>⚙️ Configuration</h3>
+                    <p>Before using the chat features, make sure to configure your API keys and gateway settings on each page.</p>
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Security Notice:</strong> This POC stores API keys in browser localStorage for demonstration purposes. In production, use server-side authentication.
+                    </div>
+                </div>
+            </main>
+
+            <footer>
+                <p>Built with Cloudflare AI Gateway and OpenAI APIs - Powered by Vite</p>
+            </footer>
+        </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

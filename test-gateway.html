@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare AI Gateway WebSocket Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        h1 {
+            color: #f8b500;
+            border-bottom: 2px solid #f8b500;
+            padding-bottom: 10px;
+        }
+        .config-section {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background: #f8b500;
+            color: #0f172a;
+        }
+        .btn-primary:hover {
+            background: #f59e0b;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .status.connected {
+            background: #065f46;
+            color: #10b981;
+        }
+        .status.disconnected {
+            background: #7f1d1d;
+            color: #f87171;
+        }
+        .status.connecting {
+            background: #78350f;
+            color: #fbbf24;
+        }
+        .logs {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid #334155;
+            padding-left: 10px;
+        }
+        .log-entry.sent {
+            border-left-color: #3b82f6;
+        }
+        .log-entry.received {
+            border-left-color: #10b981;
+        }
+        .log-entry.error {
+            border-left-color: #ef4444;
+            color: #f87171;
+        }
+        .log-entry.info {
+            border-left-color: #f8b500;
+        }
+        .timestamp {
+            color: #64748b;
+            font-size: 11px;
+        }
+        .test-section {
+            margin-top: 20px;
+        }
+        pre {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .warning {
+            background: #7c2d12;
+            color: #fed7aa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Cloudflare AI Gateway WebSocket Test</h1>
+    
+    <div class="warning">
+        <strong>⚠️ Browser Limitation:</strong> Browser WebSocket API cannot set custom headers. 
+        Authentication will be attempted via URL parameters and subprotocols.
+    </div>
+
+    <div class="config-section">
+        <h2>Configuration</h2>
+        <div class="config-grid">
+            <div class="config-item">
+                <label for="accountId">Cloudflare Account ID:</label>
+                <input type="text" id="accountId" placeholder="Your Account ID">
+            </div>
+            <div class="config-item">
+                <label for="gatewayId">Gateway ID:</label>
+                <input type="text" id="gatewayId" placeholder="Your Gateway ID">
+            </div>
+            <div class="config-item">
+                <label for="openaiKey">OpenAI API Key:</label>
+                <input type="password" id="openaiKey" placeholder="sk-...">
+            </div>
+            <div class="config-item">
+                <label for="cfToken">CF Auth Token (Optional):</label>
+                <input type="password" id="cfToken" placeholder="CF Token">
+            </div>
+            <div class="config-item">
+                <label for="model">Model:</label>
+                <select id="model">
+                    <option value="gpt-4o-mini-realtime-preview">GPT-4o Mini Realtime Preview</option>
+                    <option value="gpt-4o-realtime-preview-2024-12-17">GPT-4o Realtime (2024-12-17)</option>
+                    <option value="gpt-4o-realtime-preview">GPT-4o Realtime Preview</option>
+                </select>
+            </div>
+            <div class="config-item">
+                <label for="authMethod">Auth Method:</label>
+                <select id="authMethod">
+                    <option value="subprotocol">Subprotocol (Default)</option>
+                    <option value="url">URL Parameters</option>
+                    <option value="none">No Auth</option>
+                </select>
+            </div>
+        </div>
+        
+        <div>
+            <button id="connectBtn" class="btn btn-primary">Connect</button>
+            <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
+            <button id="clearLogsBtn" class="btn btn-secondary">Clear Logs</button>
+        </div>
+        
+        <div id="status" class="status disconnected">Status: Disconnected</div>
+    </div>
+
+    <div class="config-section">
+        <h2>Connection URL Preview</h2>
+        <pre id="urlPreview">Not configured yet</pre>
+    </div>
+
+    <div class="config-section test-section">
+        <h2>Send Test Message</h2>
+        <div class="config-item">
+            <label for="messageType">Message Type:</label>
+            <select id="messageType">
+                <option value="session.update">session.update</option>
+                <option value="response.create">response.create</option>
+                <option value="conversation.item.create">conversation.item.create</option>
+                <option value="input_audio_buffer.append">input_audio_buffer.append</option>
+                <option value="custom">Custom JSON</option>
+            </select>
+        </div>
+        <div class="config-item">
+            <label for="messageContent">Message Content (JSON):</label>
+            <textarea id="messageContent">{
+  "type": "response.create",
+  "response": {
+    "modalities": ["text"],
+    "instructions": "Say hello in a friendly way"
+  }
+}</textarea>
+        </div>
+        <button id="sendBtn" class="btn btn-primary" disabled>Send Message</button>
+    </div>
+
+    <div class="config-section">
+        <h2>Connection Logs</h2>
+        <div id="logs" class="logs"></div>
+    </div>
+
+    <script>
+        // Configuration elements
+        const accountIdInput = document.getElementById('accountId');
+        const gatewayIdInput = document.getElementById('gatewayId');
+        const openaiKeyInput = document.getElementById('openaiKey');
+        const cfTokenInput = document.getElementById('cfToken');
+        const modelSelect = document.getElementById('model');
+        const authMethodSelect = document.getElementById('authMethod');
+        
+        // Control elements
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+        const urlPreview = document.getElementById('urlPreview');
+        
+        // Message elements
+        const messageTypeSelect = document.getElementById('messageType');
+        const messageContentTextarea = document.getElementById('messageContent');
+        
+        // WebSocket instance
+        let ws = null;
+        
+        // Load saved config
+        function loadConfig() {
+            const saved = localStorage.getItem('gateway_test_config');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    accountIdInput.value = config.accountId || '';
+                    gatewayIdInput.value = config.gatewayId || '';
+                    openaiKeyInput.value = config.openaiKey || '';
+                    cfTokenInput.value = config.cfToken || '';
+                    modelSelect.value = config.model || 'gpt-4o-mini-realtime-preview';
+                    authMethodSelect.value = config.authMethod || 'subprotocol';
+                } catch (e) {
+                    console.error('Failed to load config:', e);
+                }
+            }
+        }
+        
+        // Save config
+        function saveConfig() {
+            const config = {
+                accountId: accountIdInput.value,
+                gatewayId: gatewayIdInput.value,
+                openaiKey: openaiKeyInput.value,
+                cfToken: cfTokenInput.value,
+                model: modelSelect.value,
+                authMethod: authMethodSelect.value
+            };
+            localStorage.setItem('gateway_test_config', JSON.stringify(config));
+        }
+        
+        // Update URL preview
+        function updateUrlPreview() {
+            const accountId = accountIdInput.value;
+            const gatewayId = gatewayIdInput.value;
+            const model = modelSelect.value;
+            const authMethod = authMethodSelect.value;
+            
+            if (!accountId || !gatewayId) {
+                urlPreview.textContent = 'Please enter Account ID and Gateway ID';
+                return;
+            }
+            
+            let url = `wss://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+            
+            // Add model as query parameter
+            url += `?model=${model}`;
+            
+            // Add auth parameters if using URL method
+            if (authMethod === 'url' && openaiKeyInput.value) {
+                // Note: This is for testing only - never put keys in URLs in production!
+                url += `&api_key=${openaiKeyInput.value}`;
+            }
+            
+            urlPreview.textContent = url;
+            
+            // Show subprotocols if using that method
+            if (authMethod === 'subprotocol') {
+                const protocols = [];
+                protocols.push('realtime');
+                if (openaiKeyInput.value) {
+                    protocols.push(`openai-insecure-api-key.${openaiKeyInput.value}`);
+                }
+                protocols.push('openai-beta.realtime-v1');
+                
+                urlPreview.textContent += '\n\nSubprotocols:\n' + protocols.join('\n');
+            }
+        }
+        
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logsDiv.appendChild(entry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        // Update status
+        function updateStatus(status, message) {
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = `Status: ${message}`;
+        }
+        
+        // Connect to WebSocket
+        function connect() {
+            const accountId = accountIdInput.value;
+            const gatewayId = gatewayIdInput.value;
+            const model = modelSelect.value;
+            const authMethod = authMethodSelect.value;
+            
+            if (!accountId || !gatewayId) {
+                addLog('Please enter Account ID and Gateway ID', 'error');
+                return;
+            }
+            
+            saveConfig();
+            
+            // Build URL
+            let url = `wss://gateway.ai.cloudflare.com/v1/${accountId}/${gatewayId}/openai`;
+            url += `?model=${model}`;
+            
+            if (authMethod === 'url' && openaiKeyInput.value) {
+                // Testing URL parameter authentication
+                url += `&api_key=${openaiKeyInput.value}`;
+            }
+            
+            addLog(`Connecting to: ${url}`, 'info');
+            updateStatus('connecting', 'Connecting...');
+            
+            try {
+                // Create WebSocket with subprotocols
+                let protocols = [];
+                
+                if (authMethod === 'subprotocol') {
+                    // protocols.push('realtime');
+                    protocols.push('cf-aig-authorization.YOUR_CF_AUTH_TOKEN');
+                    if (openaiKeyInput.value) {
+                        protocols.push(`openai-insecure-api-key.${openaiKeyInput.value}`);
+                    }
+                    protocols.push('openai-beta.realtime-v1');
+                    addLog(`Using subprotocols: ${protocols.join(', ')}`, 'info');
+                } else if (authMethod === 'none') {
+                    protocols = ['realtime', 'openai-beta.realtime-v1'];
+                    addLog('Connecting without authentication', 'info');
+                }
+                
+                ws = new WebSocket(url, protocols);
+                
+                // WebSocket event handlers
+                ws.onopen = () => {
+                    addLog('WebSocket connected successfully!', 'info');
+                    updateStatus('connected', 'Connected');
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    
+                    // Send initial session configuration
+                    const sessionConfig = {
+                        type: 'session.update',
+                        session: {
+                            modalities: ['text', 'audio'],
+                            instructions: 'You are a helpful assistant.',
+                            voice: 'alloy',
+                            input_audio_format: 'webm-opus',
+                            output_audio_format: 'pcm16',
+                            temperature: 0.8
+                        }
+                    };
+                    
+                    ws.send(JSON.stringify(sessionConfig));
+                    addLog('Sent session configuration', 'sent');
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        addLog(`Received: ${data.type || 'unknown'}\n${JSON.stringify(data, null, 2)}`, 'received');
+                    } catch (e) {
+                        addLog(`Received (raw): ${event.data}`, 'received');
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    addLog(`WebSocket error: ${error.message || 'Unknown error'}`, 'error');
+                    updateStatus('disconnected', 'Error');
+                };
+                
+                ws.onclose = (event) => {
+                    addLog(`WebSocket closed: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`, 'info');
+                    updateStatus('disconnected', 'Disconnected');
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendBtn.disabled = true;
+                    ws = null;
+                };
+                
+            } catch (error) {
+                addLog(`Failed to create WebSocket: ${error.message}`, 'error');
+                updateStatus('disconnected', 'Failed');
+            }
+        }
+        
+        // Disconnect WebSocket
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+        
+        // Send message
+        function sendMessage() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('WebSocket is not connected', 'error');
+                return;
+            }
+            
+            try {
+                const message = JSON.parse(messageContentTextarea.value);
+                ws.send(JSON.stringify(message));
+                addLog(`Sent: ${message.type || 'custom'}\n${JSON.stringify(message, null, 2)}`, 'sent');
+            } catch (error) {
+                addLog(`Failed to send message: ${error.message}`, 'error');
+            }
+        }
+        
+        // Update message template
+        function updateMessageTemplate() {
+            const type = messageTypeSelect.value;
+            let template = {};
+            
+            switch (type) {
+                case 'session.update':
+                    template = {
+                        type: 'session.update',
+                        session: {
+                            modalities: ['text', 'audio'],
+                            instructions: 'You are a helpful assistant.',
+                            voice: 'alloy',
+                            temperature: 0.8
+                        }
+                    };
+                    break;
+                    
+                case 'response.create':
+                    template = {
+                        type: 'response.create',
+                        response: {
+                            modalities: ['text'],
+                            instructions: 'Say hello in a friendly way'
+                        }
+                    };
+                    break;
+                    
+                case 'conversation.item.create':
+                    template = {
+                        type: 'conversation.item.create',
+                        item: {
+                            type: 'message',
+                            role: 'user',
+                            content: [{
+                                type: 'input_text',
+                                text: 'Hello, how are you?'
+                            }]
+                        }
+                    };
+                    break;
+                    
+                case 'input_audio_buffer.append':
+                    template = {
+                        type: 'input_audio_buffer.append',
+                        audio: 'base64_encoded_audio_here'
+                    };
+                    break;
+                    
+                case 'custom':
+                    template = {
+                        type: 'custom_type',
+                        data: {}
+                    };
+                    break;
+            }
+            
+            if (type !== 'custom') {
+                messageContentTextarea.value = JSON.stringify(template, null, 2);
+            }
+        }
+        
+        // Event listeners
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        clearLogsBtn.addEventListener('click', () => {
+            logsDiv.innerHTML = '';
+            addLog('Logs cleared', 'info');
+        });
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageTypeSelect.addEventListener('change', updateMessageTemplate);
+        
+        // Update URL preview when config changes
+        [accountIdInput, gatewayIdInput, modelSelect, authMethodSelect, openaiKeyInput].forEach(el => {
+            el.addEventListener('input', updateUrlPreview);
+        });
+        
+        // Initialize
+        loadConfig();
+        updateUrlPreview();
+        addLog('WebSocket test page ready', 'info');
+    </script>
+</body>
+</html>
