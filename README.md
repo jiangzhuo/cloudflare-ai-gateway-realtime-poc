@@ -1,8 +1,18 @@
 # Cloudflare AI Gateway + OpenAI Realtime API Bug Reproduction
 
-## ⚠️ CRITICAL BUG: BYOK WebSocket Authentication Broken
+## 🎉 **BUG FIXED** - Cloudflare has resolved this issue!
 
-**This repository demonstrates a critical bug in Cloudflare AI Gateway's WebSocket implementation where BYOK (Bring Your Own Key) authentication doesn't work properly.**
+**✅ UPDATE (September 22, 2025): The BYOK WebSocket authentication bug has been fixed by Cloudflare. Thanks to the Cloudflare team for their prompt response!**
+
+🔗 **Announcement**: https://x.com/shinonome_tk/status/1961862582945607915
+
+---
+
+## ⚠️ ~~CRITICAL BUG: BYOK WebSocket Authentication Broken~~ **[RESOLVED]**
+
+**~~This repository demonstrates a critical bug in Cloudflare AI Gateway's WebSocket implementation where BYOK (Bring Your Own Key) authentication doesn't work properly.~~**
+
+**This repository now serves as historical documentation of the bug that was successfully reported and fixed.**
 
 ### 🐛 The Bug
 | Protocol | BYOK Status | Authentication Method |
